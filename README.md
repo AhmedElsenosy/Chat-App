@@ -250,7 +250,7 @@ signalRService.setOnStateChanged((newState, statusMessage) => {
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/Real-Time-Chat-App-using-SignalR.git
+git clone https://github.com/AhmedElsenosy/Chat-App.git
 cd Real-Time-Chat-App-using-SignalR
 ```
 
