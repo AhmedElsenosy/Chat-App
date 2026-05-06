@@ -39,76 +39,29 @@ const ChatRoom = ({ currentUser, currentRoom, onLogout }) => {
     const status = signalRService.getConnectionStatus();
     setIsConnected(status.isConnected);
 
-    // Add sample data for demonstration
-    addSampleData();
+    // Set up user list callback
+    signalRService.setOnUserListReceived((userList) => {
+      const formattedUsers = userList.map((username, index) => ({
+        id: index + 1,
+        username: username,
+        status: 'online'
+      }));
+      setUsers(formattedUsers);
+    });
 
     return () => {
       // Cleanup callbacks
       signalRService.setOnMessageReceived(null);
       signalRService.setOnConnectionClosed(null);
       signalRService.setOnStateChanged(null);
+      signalRService.setOnUserListReceived(null);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const addSampleData = () => {
-    // Sample users
-    const sampleUsers = [
-      { id: 1, username: currentUser, status: 'online' },
-      { id: 2, username: 'Alice', status: 'online' },
-      { id: 3, username: 'Bob', status: 'away' },
-      { id: 4, username: 'Charlie', status: 'online' },
-      { id: 5, username: 'Diana', status: 'busy' }
-    ];
-    setUsers(sampleUsers);
-
-    // Sample messages
-    const sampleMessages = [
-      {
-        id: 1,
-        user: 'admin',
-        message: `Welcome to ${currentRoom} chat room!`,
-        timestamp: new Date(Date.now() - 3600000) // 1 hour ago
-      },
-      {
-        id: 2,
-        user: 'Alice',
-        message: 'Hey everyone! How is everyone doing today?',
-        timestamp: new Date(Date.now() - 1800000) // 30 minutes ago
-      },
-      {
-        id: 3,
-        user: 'Bob',
-        message: 'Great! Just finished a challenging project. What about you?',
-        timestamp: new Date(Date.now() - 1500000) // 25 minutes ago
-      },
-      {
-        id: 4,
-        user: 'Alice',
-        message: 'That sounds awesome! I\'m working on learning React hooks.',
-        timestamp: new Date(Date.now() - 1200000) // 20 minutes ago
-      },
-      {
-        id: 5,
-        user: 'admin',
-        message: `${currentUser} has joined the chat`,
-        timestamp: new Date(Date.now() - 60000) // 1 minute ago
-      }
-    ];
-    setMessages(sampleMessages);
-  };
 
   const handleSendMessage = async (messageText) => {
     try {
-      // Add message optimistically to UI
-      const newMessage = {
-        id: Date.now(),
-        user: currentUser,
-        message: messageText,
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, newMessage]);
-
       // Send message via SignalR
       const success = await signalRService.sendMessage(messageText);
       

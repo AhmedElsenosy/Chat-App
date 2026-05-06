@@ -19,6 +19,10 @@ class SignalRService {
     this.onMessageReceived = null;
     this.onConnectionClosed = null;
     this.onStateChanged = null;
+    this.onUserListReceived = null;
+
+    // Store latest user list for late subscribers
+    this.lastUserList = null;
   }
 
   /**
@@ -131,6 +135,18 @@ class SignalRService {
       
       if (this.onMessageReceived) {
         this.onMessageReceived(chatMessage);
+      }
+    });
+
+    // Listen for user list updates from the server
+    this.connection.on('ReceiveUserList', (userList) => {
+      console.log('Received user list:', userList);
+      
+      // Store latest user list for late subscribers
+      this.lastUserList = userList;
+
+      if (this.onUserListReceived) {
+        this.onUserListReceived(userList);
       }
     });
 
@@ -267,6 +283,16 @@ class SignalRService {
   // Set callback for when state changes
   setOnStateChanged(callback) {
     this.onStateChanged = callback;
+  }
+
+  // Set callback for when user list is received
+  setOnUserListReceived(callback) {
+    this.onUserListReceived = callback;
+
+    // If we already have a user list, send it immediately to the new subscriber
+    if (callback && this.lastUserList) {
+      callback(this.lastUserList);
+    }
   }
 
   // Get connection status

@@ -46,6 +46,9 @@ namespace FormulaOne.ChatService.Hubs
             );
 
             await Clients.Group(roomname).SendAsync("ReceiveMessage", message.Username, message.Content);
+
+            // Send updated user list to all clients in the room
+            await SendUserListToRoom(roomname);
         }
 
         public async Task LeaveSpecificChatRoom(UserConnection userConnection)
@@ -66,6 +69,9 @@ namespace FormulaOne.ChatService.Hubs
 
                 await Clients.Group(userConnection.ChatRoom)
                     .SendAsync("ReceiveMessage", message.Username, message.Content);
+
+                // Send updated user list to all clients in the room
+                await SendUserListToRoom(userConnection.ChatRoom);
             }
         }
 
@@ -84,6 +90,19 @@ namespace FormulaOne.ChatService.Hubs
                 await Clients.Group(userConnection.ChatRoom)
                     .SendAsync("ReceiveSpecificMessage", chatMessage.Username, chatMessage.Content);
             }
+        }
+
+        /// <summary>
+        /// Helper method to send the current user list to all clients in a room
+        /// </summary>
+        private async Task SendUserListToRoom(string roomName)
+        {
+            var usersInRoom = _userConnectionRepository.GetConnectionsByRoom(roomName)
+                .Select(c => c.Username)
+                .Distinct()
+                .ToList();
+
+            await Clients.Group(roomName).SendAsync("ReceiveUserList", usersInRoom);
         }
     }
 
